@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "iiSsUWaxDsm7FbY9Vsy1/2r55UKbohJg0mBKFI1m1HT7jnBNrmLVVOLJH0zNfRfr3sdowb/d66rWztAenK6s2g==",
+  "success": true,
+  "projectFilePath": "E:\\Work\\Some Own Shit\\ParserSUDRF\\ParserSUDRF\\ParserSUDRF.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Илья\\.nuget\\packages\\htmlagilitypack\\1.11.46\\htmlagilitypack.1.11.46.nupkg.sha512"
+  ],
+  "logs": []
+}
