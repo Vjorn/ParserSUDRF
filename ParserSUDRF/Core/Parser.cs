@@ -23,70 +23,71 @@ public class Parser
                 byte[] regionsContentBytes = await regionsResponse.Content.ReadAsByteArrayAsync();
                 string regionsContentString = Encoding.GetEncoding("windows-1251").GetString(regionsContentBytes);
 
-                HtmlDocument regionsDoc = new HtmlDocument();
-                regionsDoc.LoadHtml(regionsContentString);
-
-                HtmlNode? regionsSingleNode = regionsDoc.DocumentNode.SelectSingleNode("//select[@id='court_subj']");
-                HtmlNodeCollection optionNodes = regionsSingleNode.SelectNodes("./option");
-                
-                foreach (HtmlNode? optionNode in optionNodes)
+                foreach (HtmlNode? optionNode in GetRegionNodes(regionsContentString))
                 {
                     string? value = optionNode.GetAttributeValue("value", "");
-                    
                     int numericValue = Convert.ToInt32(value);
 
-                    if (numericValue == 0)
+                    if (numericValue == 0 || string.IsNullOrWhiteSpace(value))
                     {
                         continue;
                     }
-
-                    if (!string.IsNullOrWhiteSpace(value) || value != "0")
+                    
+                    string pageUrl = $"https://sudrf.ru/index.php?id=300&act=go_ms_search&searchtype=ms&var=true&ms_type=ms&court_subj={numericValue:00}&ms_city=&ms_street=";
+                    
+                    HttpResponseMessage courtsResponse = await httpClient.GetAsync(pageUrl);
+                    
+                    if (courtsResponse.IsSuccessStatusCode)
                     {
-                        string pageUrl = $"https://sudrf.ru/index.php?id=300&act=go_ms_search&searchtype=ms&var=true&ms_type=ms&court_subj={numericValue:00}&ms_city=&ms_street=";
-                        
-                        HttpResponseMessage courtsResponse = await httpClient.GetAsync(pageUrl);
-                        
-                        if (courtsResponse.IsSuccessStatusCode)
-                        {
-                            string courtsContentString = await courtsResponse.Content.ReadAsStringAsync();
-                            
-                            HtmlDocument courtsDoc = new HtmlDocument();
-                            courtsDoc.LoadHtml(courtsContentString);
-                            
-                            HtmlNode? courtsSingleNode = courtsDoc.DocumentNode.SelectSingleNode("//table[@class='msSearchResultTbl']");
-                            HtmlNodeCollection courtsNodes = courtsSingleNode.SelectNodes("./tr/td");
+                        string courtsContentString = await courtsResponse.Content.ReadAsStringAsync();
 
-                            foreach (HtmlNode? courtNode in courtsNodes)
+                        foreach (HtmlNode? courtNode in GetCourtNodes(courtsContentString))
+                        {
+                            HtmlNode? nameNode = courtNode.SelectSingleNode("./a");
+                            if (nameNode == null)
                             {
-                                HtmlNode? nameNode = courtNode.SelectSingleNode("./a");
-                                
-                                if (nameNode == null)
+                                continue;
+                            }
+                            
+                            HtmlNode? codeNode = courtNode.SelectSingleNode("./div[@class='courtInfoCont']");
+                            HtmlNodeCollection? codeTextNodes = codeNode.SelectNodes("./text()");
+                            
+                            foreach (HtmlNode? codeTextNode in codeTextNodes)
+                            {
+                                if (string.IsNullOrWhiteSpace(codeTextNode.InnerText))
                                 {
                                     continue;
                                 }
                                 
-                                HtmlNode? codeNode = courtNode.SelectSingleNode("./div[@class='courtInfoCont']");
-                                HtmlNodeCollection? codeTextNodes = codeNode.SelectNodes("./text()");
-                                
-                                foreach (HtmlNode? codeTextNode in codeTextNodes)
-                                {
-                                    if (string.IsNullOrWhiteSpace(codeTextNode.InnerText))
-                                    {
-                                        continue;
-                                    }
-                                    
-                                    CourtInfo courtInfo = new CourtInfo();
-                                    courtInfo.Region = optionNode.InnerText.Trim();
-                                    courtInfo.Name = nameNode.InnerText.Trim();
-                                    courtInfo.Code = codeTextNode.InnerText.Trim();
+                                CourtInfo courtInfo = new CourtInfo();
+                                courtInfo.Region = optionNode.InnerText.Trim();
+                                courtInfo.Name = nameNode.InnerText.Trim();
+                                courtInfo.Code = codeTextNode.InnerText.Trim();
 
-                                    yield return courtInfo;
-                                }
+                                yield return courtInfo;
                             }
                         }
                     }
                 }
             }
         }
+    }
+
+    private HtmlNodeCollection GetRegionNodes(string regionsContentString)
+    {
+        HtmlDocument regionsDoc = new HtmlDocument();
+        regionsDoc.LoadHtml(regionsContentString);
+
+        HtmlNode? regionsSingleNode = regionsDoc.DocumentNode.SelectSingleNode("//select[@id='court_subj']");
+        return regionsSingleNode.SelectNodes("./option");
+    }
+    
+    private HtmlNodeCollection GetCourtNodes(string courtsContentString)
+    {
+        HtmlDocument courtsDoc = new HtmlDocument();
+        courtsDoc.LoadHtml(courtsContentString);
+                        
+        HtmlNode? courtsSingleNode = courtsDoc.DocumentNode.SelectSingleNode("//table[@class='msSearchResultTbl']");
+        return courtsSingleNode.SelectNodes("./tr/td");
     }
 }

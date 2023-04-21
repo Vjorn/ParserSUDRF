@@ -1,9 +1,18 @@
+using Tools.Xlsx;
+
 namespace ParserSUDRF.Models;
 
-public class CourtInfo
+public sealed class CourtInfo
 {
-    public string Region { get; set; }
-    public string Name { get; set; }
-    public string Address { get; set; }
-    public string Code { get; set; }
+    [Name("Регион суда")]
+    public string? Region { get; set; }
+    
+    [Name("Наименование суда")]
+    public string? Name { get; set; }
+    
+    [Name("Код суда")]
+    public string? Code { get; set; }
+    
+    [Name("Адрес суда")]
+    public string? Address { get; set; }
 }

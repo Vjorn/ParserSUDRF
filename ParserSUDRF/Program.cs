@@ -1,7 +1,6 @@
 ﻿using ParserSUDRF.Core;
 
-Parser parser = new Parser();
-
-var a = parser.ParseCourtInfos();
+ExcelFileBuilder builder = new ExcelFileBuilder();
+await builder.SaveFile();
 
 Console.WriteLine();
