@@ -44,6 +44,10 @@
             "HtmlAgilityPack": {
               "target": "Package",
               "version": "[1.11.46, )"
+            },
+            "tools.xlsx": {
+              "target": "Package",
+              "version": "[1.2.4, )"
             }
           },
           "imports": [
