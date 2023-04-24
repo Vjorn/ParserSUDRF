@@ -18,4 +18,7 @@ public sealed class CourtInfo
     
     [Name("Адрес суда")]
     public string? Address { get; set; }
+    
+    [Name("Код суда (ej.sudrf.ru) - признак наличия")]
+    public string? EjCode { get; set; }
 }

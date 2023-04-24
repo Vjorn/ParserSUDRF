@@ -19,7 +19,7 @@ public class ExcelFileBuilder : IDisposable
         Parser parser = new Parser();
         
         _xlsxWriter.AddHeaderRow<CourtInfo>();
-        await foreach (CourtInfo item in parser.ParseCourtInfos())
+        await foreach (CourtInfo item in parser.ParseExistingFlag())
         {
             _xlsxWriter.Append(item);
         }

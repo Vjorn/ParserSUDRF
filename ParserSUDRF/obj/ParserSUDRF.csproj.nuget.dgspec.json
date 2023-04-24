@@ -45,6 +45,10 @@
               "target": "Package",
               "version": "[1.11.46, )"
             },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            },
             "tools.xlsx": {
               "target": "Package",
               "version": "[1.2.4, )"
