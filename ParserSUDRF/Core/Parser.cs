@@ -104,9 +104,11 @@ public class Parser
         {
             string yandexCoordsContentString = await yandexCoordsResponse.Content.ReadAsStringAsync();
                 
-            string pattern = @"balloons_user\['(.*?)'\]\[.*?\]=\{type:'mir',name:'(.*?)',adress:'(.*?)',coord:.*?};";
+            Regex addressRegex =
+                new Regex(@"balloons_user\['(.*?)'\]\[.*?\]=\{type:'mir',name:'(.*?)',adress:'(.*?)',coord:.*?};",
+                    RegexOptions.Compiled);
                 
-            MatchCollection matches = Regex.Matches(yandexCoordsContentString, pattern);
+            MatchCollection matches = addressRegex.Matches(yandexCoordsContentString);
 
             foreach (Match match in matches)
             {
