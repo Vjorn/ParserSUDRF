@@ -13,6 +13,9 @@ public sealed class CourtInfo
     [Name("Код суда")]
     public string? Code { get; set; }
     
+    [Name("Веб-сайт")]
+    public string? Website { get; set; }
+    
     [Name("Адрес суда")]
     public string? Address { get; set; }
 }
