@@ -21,10 +21,26 @@ public class Parser
             courtInfosInEjSudrfList.Add(item);
         }
         
+        List<CourtInfo> courtInfosInSudrfList = new List<CourtInfo>();
         await foreach (CourtInfo item in ParseCourtInfosInSudrf())
         {
             CourtInfo? courtInfoInEjSudrf = courtInfosInEjSudrfList.FirstOrDefault(e => e.Code == item.Code);
-            item.EjCode = courtInfoInEjSudrf == null ? "Нет" : courtInfoInEjSudrf.Code;
+            item.EjCode = courtInfoInEjSudrf == null ? "Нет / Есть" : "Есть / Есть";
+            courtInfosInSudrfList.Add(item);
+        }
+
+        foreach (CourtInfo item in courtInfosInEjSudrfList.ExceptBy(courtInfosInSudrfList.Select(e => e.Name), x => x.Name))
+        {
+            item.EjCode = "Есть / Нет";
+            courtInfosInSudrfList.Add(item);
+        }
+
+        foreach (CourtInfo item in courtInfosInSudrfList)
+        {
+            item.CourtType =
+                item.Name!.Contains("участ") || item.Name!.Contains("миров") || item.Name!.Contains("район")
+                    ? "Мировой суд"
+                    : "Нет";
             
             yield return item;
         }
@@ -70,6 +86,11 @@ public class Parser
         {
             foreach (KeyValuePair<string, string> region in regions)
             {
+                if (region.Key == "96" && region.Value == "Межрегиональные организации")
+                {
+                    continue;
+                }
+                
                 string url = $"https://ej.sudrf.ru/api/appeal/getCourtsInRegion?regionCode={region.Key}";
                 HttpResponseMessage courtsResponse = await httpClient.GetAsync(url);
 
@@ -79,12 +100,13 @@ public class Parser
 
                     Response courts = JsonConvert.DeserializeObject<Response>(courtsResponseString)!;
                     
-                    foreach (Court court in courts.data.Where(e => e.ZNACHATR.Contains("участ") || e.ZNACHATR.Contains("миров")))
+                    foreach (Court court in courts.data) //.Where(e => e.ZNACHATR.Contains("участ") || e.ZNACHATR.Contains("миров")))
                     {
                         CourtInfo courtInfo = new CourtInfo();
                         courtInfo.Region = region.Value;
                         courtInfo.Name = court.ZNACHATR;
                         courtInfo.Code = court.VNKOD;
+                        courtInfo.Address = court.ADRESS;
 
                         yield return courtInfo;
                     }
@@ -99,6 +121,11 @@ public class Parser
 
         foreach (KeyValuePair<string, string> region in regions)
         {
+            if (region.Key == "96")
+            {
+                continue;
+            }
+            
             string pageUrl = $"https://sudrf.ru/index.php?id=300&act=go_ms_search&searchtype=ms&var=true&ms_type=ms&court_subj={region.Key}&ms_city=&ms_street=";
 
             HttpResponseMessage courtsResponse = await httpClient.GetAsync(pageUrl);
